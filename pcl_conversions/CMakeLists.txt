@@ -35,6 +35,7 @@ target_include_directories(pcl_conversions
     $<INSTALL_INTERFACE:include>
     ${PCL_COMMON_INCLUDE_DIRS}
 )
+#ament_target_dependencies(pcl_conversions ${dependencies})
 target_link_libraries(pcl_conversions
   INTERFACE
     ${PCL_LIBRARIES})
