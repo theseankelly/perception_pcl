@@ -28,13 +28,29 @@ set(dependencies
   std_msgs
 )
 
-include_directories(
-  include
-  ${PCL_COMMON_INCLUDE_DIRS}
+add_library(pcl_conversions INTERFACE)
+target_include_directories(pcl_conversions
+  INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${PCL_COMMON_INCLUDE_DIRS}
 )
+target_link_libraries(pcl_conversions
+  INTERFACE
+    ${PCL_LIBRARIES})
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}/
+)
+
+install(
+  TARGETS
+    pcl_conversions
+  EXPORT export_pcl_conversions
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  INCLUDES DESTINATION include
 )
 
 # Add gtest based cpp test target
@@ -48,6 +64,7 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}-test ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 endif()
 
-ament_export_include_directories(include)
+ament_export_include_directories(include ${PCL_COMMON_INCLUDE_DIRS})
 ament_export_dependencies(${dependencies})
+ament_export_targets(export_pcl_conversions HAS_LIBRARY_TARGET)
 ament_package()
