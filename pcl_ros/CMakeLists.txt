@@ -59,6 +59,17 @@ target_link_libraries(pcl_ros_tf ${PCL_LIBRARIES})
 #target_link_libraries(pcl_ros_io pcl_ros_tf ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 #class_loader_hide_library_symbols(pcl_ros_io)
 #
+
+## Declare
+add_library(pcl_ros_filters
+  src/pcl_ros/filters/filter.cpp
+)
+ament_target_dependencies(pcl_ros_filters
+  ${dependencies}
+)
+target_link_libraries(pcl_ros_filters pcl_ros_tf)
+
+
 ### Declare the pcl_ros_features library
 #add_library(pcl_ros_features
 #  src/pcl_ros/features/feature.cpp
@@ -171,6 +182,7 @@ install(
 install(
   TARGETS
     pcl_ros_tf
+    pcl_ros_filters
 #    pcl_ros_io
 #    pcl_ros_features
 #    pcl_ros_filters
@@ -192,7 +204,7 @@ install(DIRECTORY plugins samples
   DESTINATION share/${PROJECT_NAME})
 
 ament_export_include_directories(include)
-ament_export_libraries(pcl_ros_tf)
+ament_export_libraries(pcl_ros_tf pcl_ros_filters)
 ament_export_dependencies(${dependencies})
 ament_export_targets(export_pcl_ros HAS_LIBRARY_TARGET)
 ament_package()

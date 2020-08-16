@@ -35,132 +35,97 @@
  *
  */
 
-#ifndef PCL_ROS__FILTERS__FILTER_HPP_
-#define PCL_ROS__FILTERS__FILTER_HPP_
+#ifndef PCL_ROS_FILTER_H_
+#define PCL_ROS_FILTER_H_
 
+// PCL includes
 #include <pcl/filters/filter.h>
-#include <dynamic_reconfigure/server.h>
-#include <string>
-#include "pcl_ros/pcl_nodelet.hpp"
-#include "pcl_ros/FilterConfig.hpp"
+#include "pcl_ros/pcl_node.hpp"
 
 namespace pcl_ros
 {
-namespace sync_policies = message_filters::sync_policies;
+  namespace sync_policies = message_filters::sync_policies;
 
-/** \brief @b Filter represents the base filter class. Some generic 3D operations that are
-  * applicable to all filters are defined here as static methods.
-  * \author Radu Bogdan Rusu
-  */
-class Filter : public PCLNodelet
-{
-public:
-  typedef sensor_msgs::PointCloud2 PointCloud2;
-
-  typedef pcl::IndicesPtr IndicesPtr;
-  typedef pcl::IndicesConstPtr IndicesConstPtr;
-
-  Filter() {}
-
-protected:
-  /** \brief The input PointCloud subscriber. */
-  ros::Subscriber sub_input_;
-
-  message_filters::Subscriber<PointCloud2> sub_input_filter_;
-
-  /** \brief The desired user filter field name. */
-  std::string filter_field_name_;
-
-  /** \brief The minimum allowed filter value a point will be considered from. */
-  double filter_limit_min_;
-
-  /** \brief The maximum allowed filter value a point will be considered from. */
-  double filter_limit_max_;
-
-  /** \brief Set to true if we want to return the data outside
-    * (\a filter_limit_min_;\a filter_limit_max_). Default: false.
+  /** \brief @b Filter represents the base filter class. Some generic 3D operations that are applicable to all filters
+    * are defined here as static methods.
+    * \author Radu Bogdan Rusu
     */
-  bool filter_limit_negative_;
-
-  /** \brief The input TF frame the data should be transformed into,
-    * if input.header.frame_id is different.
-    */
-  std::string tf_input_frame_;
-
-  /** \brief The original data input TF frame. */
-  std::string tf_input_orig_frame_;
-
-  /** \brief The output TF frame the data should be transformed into,
-    * if input.header.frame_id is different.
-    */
-  std::string tf_output_frame_;
-
-  /** \brief Internal mutex. */
-  boost::mutex mutex_;
-
-  /** \brief Child initialization routine.
-    * \param nh ROS node handle
-    * \param has_service set to true if the child has a Dynamic Reconfigure service
-    */
-  virtual bool
-  child_init(ros::NodeHandle & nh, bool & has_service)
+  class Filter : public PCLNode
   {
-    has_service = false;
-    return true;
-  }
+    public:
+      typedef sensor_msgs::msg::PointCloud2 PointCloud2;
 
-  /** \brief Virtual abstract filter method. To be implemented by every child.
-    * \param input the input point cloud dataset.
-    * \param indices a pointer to the vector of point indices to use.
-    * \param output the resultant filtered PointCloud2
-    */
-  virtual void
-  filter(
-    const PointCloud2::ConstPtr & input, const IndicesPtr & indices,
-    PointCloud2 & output) = 0;
+      typedef std::shared_ptr <std::vector<int> > IndicesPtr;
+      typedef std::shared_ptr <const std::vector<int> > IndicesConstPtr;
+    
+      Filter (std::string node_name, const rclcpp::NodeOptions& options);
 
-  /** \brief Lazy transport subscribe routine. */
-  virtual void
-  subscribe();
+    protected:
+      /** \brief The input PointCloud subscriber. */
+      rclcpp::Subscription<PointCloud2>::SharedPtr sub_input_;
 
-  /** \brief Lazy transport unsubscribe routine. */
-  virtual void
-  unsubscribe();
+      message_filters::Subscriber<PointCloud2> sub_input_filter_;
 
-  /** \brief Nodelet initialization routine. */
-  virtual void
-  onInit();
+      /** \brief The desired user filter field name. */
+      std::string filter_field_name_;
 
-  /** \brief Call the child filter () method, optionally transform the result, and publish it.
-    * \param input the input point cloud dataset.
-    * \param indices a pointer to the vector of point indices to use.
-    */
-  void
-  computePublish(const PointCloud2::ConstPtr & input, const IndicesPtr & indices);
+      /** \brief The minimum allowed filter value a point will be considered from. */
+      double filter_limit_min_;
 
-private:
-  /** \brief Pointer to a dynamic reconfigure service. */
-  boost::shared_ptr<dynamic_reconfigure::Server<pcl_ros::FilterConfig>> srv_;
+      /** \brief The maximum allowed filter value a point will be considered from. */
+      double filter_limit_max_;
 
-  /** \brief Synchronized input, and indices.*/
-  boost::shared_ptr<message_filters::Synchronizer<sync_policies::ExactTime<PointCloud2,
-    PointIndices>>> sync_input_indices_e_;
-  boost::shared_ptr<message_filters::Synchronizer<sync_policies::ApproximateTime<PointCloud2,
-    PointIndices>>> sync_input_indices_a_;
+      /** \brief Set to true if we want to return the data outside (\a filter_limit_min_;\a filter_limit_max_). Default: false. */
+      bool filter_limit_negative_;
 
-  /** \brief Dynamic reconfigure service callback. */
-  virtual void
-  config_callback(pcl_ros::FilterConfig & config, uint32_t level);
+      /** \brief The input TF frame the data should be transformed into, if input.header.frame_id is different. */
+      std::string tf_input_frame_;
 
-  /** \brief PointCloud2 + Indices data callback. */
-  void
-  input_indices_callback(
-    const PointCloud2::ConstPtr & cloud,
-    const PointIndicesConstPtr & indices);
+      /** \brief The original data input TF frame. */
+      std::string tf_input_orig_frame_;
 
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-}  // namespace pcl_ros
+      /** \brief The output TF frame the data should be transformed into, if input.header.frame_id is different. */
+      std::string tf_output_frame_;
 
-#endif  // PCL_ROS__FILTERS__FILTER_HPP_
+      /** \brief Internal mutex. */
+      std::mutex mutex_;
+
+      /** \brief Virtual abstract filter method. To be implemented by every child. 
+        * \param input the input point cloud dataset.
+        * \param indices a pointer to the vector of point indices to use.   
+        * \param output the resultant filtered PointCloud2
+        */ 
+      virtual void 
+      filter (const PointCloud2::ConstSharedPtr &input, const IndicesPtr &indices,
+              PointCloud2 &output) = 0;
+    
+      /** \brief Lazy transport subscribe routine. */
+      virtual void
+      subscribe();
+    
+      /** \brief Lazy transport unsubscribe routine. */
+      virtual void
+      unsubscribe();
+    
+      /** \brief Call the child filter () method, optionally transform the result, and publish it.
+        * \param input the input point cloud dataset.
+        * \param indices a pointer to the vector of point indices to use.   
+        */
+      void 
+      computePublish (const PointCloud2::ConstSharedPtr &input, const IndicesPtr &indices);
+
+    private:
+      /** \brief Synchronized input, and indices.*/
+      std::shared_ptr<message_filters::Synchronizer<sync_policies::ExactTime<PointCloud2, PointIndices> > >       sync_input_indices_e_;
+      std::shared_ptr<message_filters::Synchronizer<sync_policies::ApproximateTime<PointCloud2, PointIndices> > > sync_input_indices_a_;
+
+      /** \brief PointCloud2 + Indices data callback. */
+      void 
+      input_indices_callback (const PointCloud2::ConstSharedPtr cloud,
+                              const pcl_msgs::msg::PointIndices::ConstSharedPtr indices);
+    public:
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  };
+}
+
+#endif  //#ifndef PCL_ROS_FILTER_H_
