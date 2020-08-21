@@ -41,8 +41,8 @@
 
 **/
 
-#ifndef PCL_NODE_H_
-#define PCL_NODE_H_
+#ifndef PCL_ROS__PCL_NODE_HPP__
+#define PCL_ROS__PCL_NODE_HPP__
 
 #include <rclcpp/rclcpp.hpp>
 #include <rcutils/error_handling.h>
@@ -54,7 +54,7 @@
 #include <pcl_msgs/msg/model_coefficients.hpp>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-//#include "pcl_ros/point_cloud.h"
+// #include "pcl_ros/point_cloud.h"
 // ROS Node includes
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
@@ -64,6 +64,10 @@
 // Include TF
 #include <tf2_ros/transform_listener.h>
 
+#include <memory>
+#include <string>
+#include <vector>
+
 using pcl_conversions::fromPCL;
 
 namespace pcl_ros
@@ -71,7 +75,9 @@ namespace pcl_ros
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
-/** \brief @b PCLNode represents the base PCL Node class. All PCL node should inherit from this class. */
+/** \brief @b PCLNode represents the base PCL Node class.
+  * All PCL node should inherit from this class.
+  */
 class PCLNode : public rclcpp::Node
 {
 public:
@@ -180,14 +186,17 @@ protected:
   /** \brief The maximum queue size (default: 3). */
   int max_queue_size_ = 3;
 
-  /** \brief True if we use an approximate time synchronizer versus an exact one (false by default). */
+  /** \brief True if we use an approximate time synchronizer versus an
+    * exact one (false by default).
+    */
   bool approximate_sync_ = false;
 
   /** \brief TF listener object. */
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
 
-  /** \brief Test whether a given PointCloud message is "valid" (i.e., has points, and width and height are non-zero).
+  /** \brief Test whether a given PointCloud message is "valid"
+    * (i.e., has points, and width and height are non-zero).
     * \param cloud the point cloud to test
     * \param topic_name an optional topic name (only used for printing, defaults to "input")
     */
@@ -196,7 +205,8 @@ protected:
   {
     if (cloud->width * cloud->height * cloud->point_step != cloud->data.size()) {
       RCLCPP_WARN(
-        this->get_logger(), "Invalid PointCloud (data = %zu, width = %d, height = %d, step = %d) with stamp %f, and frame %s on topic %s received!",
+        this->get_logger(), "Invalid PointCloud (data = %zu, width = %d, height = %d, step = %d) "
+        "with stamp %f, and frame %s on topic %s received!",
         cloud->data.size(), cloud->width, cloud->height, cloud->point_step, cloud->header.stamp.sec,
         cloud->header.frame_id.c_str(), topic_name.c_str());
 
@@ -205,7 +215,8 @@ protected:
     return true;
   }
 
-  /** \brief Test whether a given PointCloud message is "valid" (i.e., has points, and width and height are non-zero).
+  /** \brief Test whether a given PointCloud message is "valid" (i.e., has points, and width and
+    * height are non-zero).
     * \param cloud the point cloud to test
     * \param topic_name an optional topic name (only used for printing, defaults to "input")
     */
@@ -214,7 +225,8 @@ protected:
   {
     if (cloud->width * cloud->height != cloud->points.size()) {
       RCLCPP_WARN(
-        this->get_logger(), "Invalid PointCloud (points = %zu, width = %d, height = %d) with stamp %f, and frame %s on topic %s received!",
+        this->get_logger(), "Invalid PointCloud (points = %zu, width = %d, height = %d) with "
+        "stamp %f, and frame %s on topic %s received!",
         cloud->points.size(), cloud->width, cloud->height, fromPCL(
           cloud->header).stamp.sec, cloud->header.frame_id.c_str(), topic_name.c_str());
 
@@ -232,7 +244,8 @@ protected:
   {
     if (indices->indices.empty()) {
       RCLCPP_WARN(
-        this->get_logger(), "Empty indices (values = %zu) with stamp %f, and frame %s on topic %s received!",
+        this->get_logger(), "Empty indices (values = %zu) with stamp %f, and frame %s on "
+        "topic %s received!",
         indices->indices.size(), indices->header.stamp.sec,
         indices->header.frame_id.c_str(), topic_name.c_str());
       return true;
@@ -249,7 +262,8 @@ protected:
   {
     if (model->values.empty()) {
       RCLCPP_WARN(
-        this->get_logger(), "Empty model (values = %zu) with stamp %f, and frame %s on topic %s received!",
+        this->get_logger(), "Empty model (values = %zu) with stamp %f, and frame %s on "
+        "topic %s received!",
         model->values.size(), model->header.stamp.sec,
         model->header.frame_id.c_str(), topic_name.c_str());
       return false;
@@ -279,6 +293,6 @@ protected:
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-}
+}  // namespace pcl_ros
 
-#endif  //#ifndef PCL_NODE_H_
+#endif  // #ifndef PCL_ROS__PCL_NODE_HPP__

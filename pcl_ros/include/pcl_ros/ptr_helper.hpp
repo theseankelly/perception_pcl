@@ -6,14 +6,14 @@
 //  Copyright © 2019 Andreas Klintberg. All rights reserved.
 //
 
-#ifndef ptr_helper_h
-#define ptr_helper_h
+#ifndef _PCL_ROS__PTR_HELPER_HPP_
+#define _PCL_ROS__PTR_HELPER_HPP_
 
 #include <boost/shared_ptr.hpp>
 #include <memory>
+#include <utility>
 
-
-/*https://stackoverflow.com/a/12605002/1829511*/
+// https://stackoverflow.com/a/12605002/1829511
 
 namespace
 {
@@ -22,7 +22,7 @@ struct Holder
 {
   SharedPointer p;
 
-  Holder(const SharedPointer & p)
+  explicit Holder(const SharedPointer & p)
   : p(p) {}
   Holder(const Holder & other)
   : p(other.p) {}
@@ -31,7 +31,7 @@ struct Holder
 
   void operator()(...) {p.reset();}
 };
-}
+}  // namespace
 
 template<class T>
 std::shared_ptr<T> to_std_ptr(const boost::shared_ptr<T> & p)
@@ -55,4 +55,4 @@ boost::shared_ptr<T> to_boost_ptr(const std::shared_ptr<T> & p)
   }
 }
 
-#endif /* ptr_helper_h */
+#endif  // _PCL_ROS__PTR_HELPER_HPP_
